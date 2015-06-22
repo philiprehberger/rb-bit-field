@@ -34,7 +34,7 @@ module Philiprehberger
           flags_map[name] = position
 
           define_method(:"#{name}?") do
-            read?(name)
+            flag_set?(name)
           end
         end
 
@@ -82,7 +82,7 @@ module Philiprehberger
       #
       # @param flag [Symbol] the flag name
       # @return [Boolean]
-      def read?(flag)
+      def flag_set?(flag)
         pos = position_for(flag)
         (@value & (1 << pos)) != 0
       end
@@ -128,7 +128,7 @@ module Philiprehberger
       #
       # @return [Array<Symbol>]
       def to_a
-        self.class.flags.select { |f| read?(f) }
+        self.class.flags.select { |f| flag_set?(f) }
       end
 
       # Return all defined flag names
