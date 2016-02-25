@@ -193,4 +193,122 @@ RSpec.describe Philiprehberger::BitField::Base do
       expect(permissions_class.flags).to eq(%i[read write execute])
     end
   end
+
+  describe 'toggle specific bits' do
+    it 'toggles multiple bits in sequence' do
+      perms = permissions_class.new
+      perms.toggle(:read).toggle(:write).toggle(:read)
+      expect(perms.read?).to be false
+      expect(perms.write?).to be true
+    end
+  end
+
+  describe 'count set bits' do
+    it 'counts zero flags when none set' do
+      perms = permissions_class.new
+      expect(perms.to_a.length).to eq(0)
+    end
+
+    it 'counts all flags when all set' do
+      perms = permissions_class.new(:read, :write, :execute)
+      expect(perms.to_a.length).to eq(3)
+    end
+  end
+
+  describe 'all bits set/cleared' do
+    it 'has all bits set' do
+      perms = permissions_class.new(:read, :write, :execute)
+      expect(perms.to_i).to eq(7) # 111
+    end
+
+    it 'has all bits cleared' do
+      perms = permissions_class.new
+      expect(perms.to_i).to eq(0)
+    end
+  end
+
+  describe 'boundary bits' do
+    it 'handles bit 0 correctly' do
+      bf_class = Class.new(described_class) { flag :zero, 0 }
+      bf = bf_class.new(:zero)
+      expect(bf.to_i).to eq(1)
+      expect(bf.zero?).to be true
+    end
+
+    it 'handles high bit positions' do
+      bf_class = Class.new(described_class) { flag :high, 31 }
+      bf = bf_class.new(:high)
+      expect(bf.to_i).to eq(2**31)
+      expect(bf.high?).to be true
+    end
+
+    it 'raises for negative position' do
+      expect do
+        Class.new(described_class) { flag :neg, -1 }
+      end.to raise_error(Philiprehberger::BitField::Error)
+    end
+  end
+
+  describe 'to_i/from_i roundtrip' do
+    it 'roundtrips through to_i and from_i' do
+      perms = permissions_class.new(:read, :execute)
+      restored = permissions_class.from_i(perms.to_i)
+      expect(restored.to_a).to eq(perms.to_a)
+      expect(restored.to_i).to eq(perms.to_i)
+    end
+
+    it 'roundtrips zero value' do
+      perms = permissions_class.new
+      restored = permissions_class.from_i(perms.to_i)
+      expect(restored.to_a).to eq([])
+    end
+
+    it 'roundtrips all flags set' do
+      perms = permissions_class.new(:read, :write, :execute)
+      restored = permissions_class.from_i(perms.to_i)
+      expect(restored.to_a).to eq(%i[read write execute])
+    end
+  end
+
+  describe 'equality' do
+    it 'considers same flags equal' do
+      a = permissions_class.new(:read, :write)
+      b = permissions_class.new(:read, :write)
+      expect(a == b).to be true
+    end
+
+    it 'considers different flags not equal' do
+      a = permissions_class.new(:read)
+      b = permissions_class.new(:write)
+      expect(a == b).to be false
+    end
+
+    it 'is not equal to non-BitField objects' do
+      perms = permissions_class.new(:read)
+      expect(perms == 1).to be false
+    end
+
+    it 'works as hash keys' do
+      a = permissions_class.new(:read)
+      b = permissions_class.new(:read)
+      hash = { a => 'found' }
+      expect(hash[b]).to eq('found')
+    end
+  end
+
+  describe 'set is idempotent' do
+    it 'does not change value when setting already-set flag' do
+      perms = permissions_class.new(:read)
+      perms.set(:read)
+      expect(perms.to_i).to eq(1)
+    end
+  end
+
+  describe 'clear is idempotent' do
+    it 'does not change value when clearing already-cleared flag' do
+      perms = permissions_class.new
+      perms.clear(:read)
+      expect(perms.to_i).to eq(0)
+    end
+  end
 end
