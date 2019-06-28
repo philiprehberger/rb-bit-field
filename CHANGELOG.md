@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-03-29
+
+### Added
+- Flag groups via class-level `group` DSL with `set_group`, `clear_group`, and `group_set?` instance methods
+- JSON serialization with `to_json` and `ClassName.from_json(str)` class method
+- Hash serialization with `to_h` and `ClassName.from_h(hash)` class method
+- Bulk operations: `set_all`, `clear_all`, `set_flags(*flags)`, `clear_flags(*flags)`
+
 ## [0.1.1] - 2026-03-22
 
 ### Changed

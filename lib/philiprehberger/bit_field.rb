@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'json'
 require_relative 'bit_field/version'
 
 module Philiprehberger
@@ -13,6 +14,7 @@ module Philiprehberger
     #     flag :read, 0
     #     flag :write, 1
     #     flag :execute, 2
+    #     group :read_write, [:read, :write]
     #   end
     #   perms = Permissions.new(:read, :write)
     #   perms.read?    # => true
@@ -38,11 +40,33 @@ module Philiprehberger
           end
         end
 
+        # Define a named group of flags
+        #
+        # @param name [Symbol] the group name
+        # @param flag_names [Array<Symbol>] the flags in this group
+        # @return [void]
+        def group(name, flag_names)
+          raise Error, "group #{name} already defined" if groups_map.key?(name)
+
+          flag_names.each do |f|
+            raise Error, "unknown flag #{f} in group #{name}" unless flags_map.key?(f)
+          end
+
+          groups_map[name] = flag_names.dup.freeze
+        end
+
         # Return all defined flag names
         #
         # @return [Array<Symbol>]
         def flags
           flags_map.keys
+        end
+
+        # Return all defined group definitions
+        #
+        # @return [Hash{Symbol => Array<Symbol>}]
+        def groups
+          groups_map.dup
         end
 
         # Create an instance from an integer value
@@ -57,15 +81,41 @@ module Philiprehberger
           instance
         end
 
+        # Create an instance from a JSON string
+        #
+        # @param json_string [String] JSON with "flags" and "value" keys
+        # @return [Base]
+        def from_json(json_string)
+          data = JSON.parse(json_string)
+          from_h(data)
+        end
+
+        # Create an instance from a hash
+        #
+        # @param hash [Hash] hash with :flags/:value or "flags"/"value" keys
+        # @return [Base]
+        def from_h(hash)
+          value = hash[:value] || hash['value']
+          raise Error, 'hash must include a value key' if value.nil?
+
+          from_i(value)
+        end
+
         # @api private
         def flags_map
           @flags_map ||= {}
         end
 
         # @api private
+        def groups_map
+          @groups_map ||= {}
+        end
+
+        # @api private
         def inherited(subclass)
           super
           subclass.instance_variable_set(:@flags_map, flags_map.dup)
+          subclass.instance_variable_set(:@groups_map, groups_map.dup)
         end
       end
 
@@ -117,6 +167,66 @@ module Philiprehberger
         self
       end
 
+      # Set all defined flags
+      #
+      # @return [self]
+      def set_all
+        self.class.flags.each { |f| set(f) }
+        self
+      end
+
+      # Clear all defined flags
+      #
+      # @return [self]
+      def clear_all
+        @value = 0
+        self
+      end
+
+      # Set multiple specific flags at once
+      #
+      # @param flag_names [Array<Symbol>] flags to set
+      # @return [self]
+      def set_flags(*flag_names)
+        flag_names.each { |f| set(f) }
+        self
+      end
+
+      # Clear multiple specific flags at once
+      #
+      # @param flag_names [Array<Symbol>] flags to clear
+      # @return [self]
+      def clear_flags(*flag_names)
+        flag_names.each { |f| clear(f) }
+        self
+      end
+
+      # Set all flags in a group
+      #
+      # @param group_name [Symbol] the group name
+      # @return [self]
+      def set_group(group_name)
+        group_flags(group_name).each { |f| set(f) }
+        self
+      end
+
+      # Clear all flags in a group
+      #
+      # @param group_name [Symbol] the group name
+      # @return [self]
+      def clear_group(group_name)
+        group_flags(group_name).each { |f| clear(f) }
+        self
+      end
+
+      # Check if all flags in a group are set
+      #
+      # @param group_name [Symbol] the group name
+      # @return [Boolean]
+      def group_set?(group_name)
+        group_flags(group_name).all? { |f| flag_set?(f) }
+      end
+
       # Return the integer representation
       #
       # @return [Integer]
@@ -136,6 +246,20 @@ module Philiprehberger
       # @return [Array<Symbol>]
       def flags
         self.class.flags
+      end
+
+      # Return a hash representation
+      #
+      # @return [Hash{Symbol => Object}]
+      def to_h
+        { flags: to_a, value: @value }
+      end
+
+      # Return a JSON string representation
+      #
+      # @return [String]
+      def to_json(*_args)
+        { flags: to_a.map(&:to_s), value: @value }.to_json
       end
 
       # Bitwise OR
@@ -202,6 +326,13 @@ module Philiprehberger
         raise Error, "unknown flag: #{flag}" unless pos
 
         pos
+      end
+
+      def group_flags(group_name)
+        flags_list = self.class.groups_map[group_name]
+        raise Error, "unknown group: #{group_name}" unless flags_list
+
+        flags_list
       end
     end
   end
