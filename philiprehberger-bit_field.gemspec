@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
 
   spec.summary = 'Named bit flags with symbolic access, set operations, and serialization'
   spec.description = 'Named bit flags with a DSL for defining flags at bit positions, symbolic read/set/clear/toggle, ' \
-                       'flag groups, bulk operations, bitwise OR/AND/XOR, JSON/hash serialization, and Comparable support.'
+                     'flag groups, bulk operations, bitwise OR/AND/XOR, JSON/hash serialization, and Comparable support.'
   spec.homepage = 'https://philiprehberger.com/open-source-packages/ruby/philiprehberger-bit_field'
   spec.license = 'MIT'
 
