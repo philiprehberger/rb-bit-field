@@ -80,6 +80,35 @@ perms.clear_group(:read_write)
 perms.group_set?(:read_write)  # => false
 ```
 
+### Group Queries
+
+```ruby
+perms = Permissions.new(:read)
+perms.group_any_set?(:read_write)   # => true  (read is set)
+perms.group_none_set?(:read_write)  # => false
+
+perms = Permissions.new(:execute)
+perms.group_any_set?(:read_write)   # => false (neither read nor write)
+perms.group_none_set?(:read_write)  # => true
+```
+
+### Flag Diff
+
+```ruby
+before = Permissions.new(:read, :write)
+after  = Permissions.new(:write, :execute)
+
+after.added_flags(before)    # => [:execute]
+after.removed_flags(before)  # => [:read]
+```
+
+### Strict Mode
+
+```ruby
+Permissions.strict(:read, :write)   # => works normally
+Permissions.strict(:read, :admin)   # => raises Philiprehberger::BitField::Error
+```
+
 ### Set Operations
 
 ```ruby
@@ -115,7 +144,9 @@ Permissions.from_h({ flags: [:read], value: 1 })
 | `.from_h(hash)` | Create an instance from a hash |
 | `.flags` | Return all defined flag names |
 | `.groups` | Return all defined group definitions |
+| `.strict(*flags)` | Create an instance, raising on unknown flags |
 | `#flag_set?(flag)` | Check if a flag is set |
+| `#flag_clear?(flag)` | Check if a flag is not set |
 | `#set(flag)` | Set a flag |
 | `#clear(flag)` | Clear a flag |
 | `#toggle(flag)` | Toggle a flag |
@@ -126,6 +157,10 @@ Permissions.from_h({ flags: [:read], value: 1 })
 | `#set_group(name)` | Set all flags in a group |
 | `#clear_group(name)` | Clear all flags in a group |
 | `#group_set?(name)` | Check if all flags in a group are set |
+| `#group_any_set?(name)` | Check if any flag in a group is set |
+| `#group_none_set?(name)` | Check if no flags in a group are set |
+| `#added_flags(other)` | Return flags set in self but not in other |
+| `#removed_flags(other)` | Return flags set in other but not in self |
 | `#to_i` | Return the integer representation |
 | `#to_a` | Return an array of set flag names |
 | `#to_h` | Return a hash with flags and value |
