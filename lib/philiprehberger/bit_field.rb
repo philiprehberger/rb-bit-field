@@ -158,6 +158,20 @@ module Philiprehberger
         !flag_set?(flag)
       end
 
+      # Return the number of flags currently set
+      #
+      # @return [Integer]
+      def count_set
+        self.class.flags.count { |f| flag_set?(f) }
+      end
+
+      # Return the number of flags currently clear
+      #
+      # @return [Integer]
+      def count_clear
+        self.class.flags.size - count_set
+      end
+
       # Set a flag
       #
       # @param flag [Symbol] the flag name

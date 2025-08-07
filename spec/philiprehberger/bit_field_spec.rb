@@ -777,4 +777,52 @@ RSpec.describe Philiprehberger::BitField::Base do
       expect { perms.flag_clear?(:admin) }.to raise_error(Philiprehberger::BitField::Error)
     end
   end
+
+  # --- Count Set / Count Clear ---
+
+  describe '#count_set' do
+    it 'returns 0 when no flags are set' do
+      perms = permissions_class.new
+      expect(perms.count_set).to eq(0)
+    end
+
+    it 'returns the number of flags set when some are set' do
+      perms = permissions_class.new(:read, :execute)
+      expect(perms.count_set).to eq(2)
+    end
+
+    it 'returns the total number of flags when all are set' do
+      perms = permissions_class.new(:read, :write, :execute)
+      expect(perms.count_set).to eq(3)
+    end
+  end
+
+  describe '#count_clear' do
+    it 'returns the total number of flags when none are set' do
+      perms = permissions_class.new
+      expect(perms.count_clear).to eq(3)
+    end
+
+    it 'returns the number of clear flags when some are set' do
+      perms = permissions_class.new(:read)
+      expect(perms.count_clear).to eq(2)
+    end
+
+    it 'returns 0 when all flags are set' do
+      perms = permissions_class.new(:read, :write, :execute)
+      expect(perms.count_clear).to eq(0)
+    end
+
+    it 'is consistent with count_set (count_set + count_clear == total)' do
+      total = permissions_class.flags.size
+      [
+        permissions_class.new,
+        permissions_class.new(:read),
+        permissions_class.new(:read, :write),
+        permissions_class.new(:read, :write, :execute)
+      ].each do |perms|
+        expect(perms.count_set + perms.count_clear).to eq(total)
+      end
+    end
+  end
 end
