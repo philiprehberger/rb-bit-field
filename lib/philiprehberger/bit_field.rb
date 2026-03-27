@@ -27,7 +27,7 @@ module Philiprehberger
         # @param position [Integer] the bit position (0-based)
         # @return [void]
         def flag(name, position)
-          raise Error, "position must be a non-negative integer" unless position.is_a?(Integer) && position >= 0
+          raise Error, 'position must be a non-negative integer' unless position.is_a?(Integer) && position >= 0
           raise Error, "flag #{name} already defined" if flags_map.key?(name)
           raise Error, "position #{position} already used" if flags_map.any? { |_, p| p == position }
 
@@ -84,7 +84,7 @@ module Philiprehberger
       # @return [Boolean]
       def flag_set?(flag)
         pos = position_for(flag)
-        (@value & (1 << pos)) != 0
+        @value.anybits?(1 << pos)
       end
 
       # Set a flag

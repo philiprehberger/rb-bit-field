@@ -165,8 +165,8 @@ RSpec.describe Philiprehberger::BitField::Base do
 
   describe 'Comparable' do
     it 'compares by integer value' do
-      a = permissions_class.new(:read)           # 1
-      b = permissions_class.new(:read, :write)    # 3
+      a = permissions_class.new(:read) # 1
+      b = permissions_class.new(:read, :write) # 3
       expect(a).to be < b
     end
 
