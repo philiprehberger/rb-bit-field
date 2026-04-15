@@ -92,6 +92,18 @@ perms.group_any_set?(:read_write)   # => false (neither read nor write)
 perms.group_none_set?(:read_write)  # => true
 ```
 
+### Counting Flags
+
+```ruby
+perms = Permissions.new(:read, :write)
+perms.count_set   # => 2
+perms.count_clear # => 1
+
+perms.set(:execute)
+perms.count_set   # => 3
+perms.count_clear # => 0
+```
+
 ### Flag Diff
 
 ```ruby
@@ -147,6 +159,8 @@ Permissions.from_h({ flags: [:read], value: 1 })
 | `.strict(*flags)` | Create an instance, raising on unknown flags |
 | `#flag_set?(flag)` | Check if a flag is set |
 | `#flag_clear?(flag)` | Check if a flag is not set |
+| `#count_set` | Return the number of flags currently set |
+| `#count_clear` | Return the number of flags currently clear |
 | `#set(flag)` | Set a flag |
 | `#clear(flag)` | Clear a flag |
 | `#toggle(flag)` | Toggle a flag |
