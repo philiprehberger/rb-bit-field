@@ -620,4 +620,161 @@ RSpec.describe Philiprehberger::BitField::Base do
       expect(perms.clear_flags(:read)).to be perms
     end
   end
+
+  # --- Group Query Methods ---
+
+  describe '#group_any_set?' do
+    it 'returns true when all flags in the group are set' do
+      perms = grouped_class.new(:read, :write)
+      expect(perms.group_any_set?(:read_write)).to be true
+    end
+
+    it 'returns true when some flags in the group are set' do
+      perms = grouped_class.new(:read)
+      expect(perms.group_any_set?(:read_write)).to be true
+    end
+
+    it 'returns false when no flags in the group are set' do
+      perms = grouped_class.new(:execute)
+      expect(perms.group_any_set?(:read_write)).to be false
+    end
+
+    it 'returns false when no flags are set at all' do
+      perms = grouped_class.new
+      expect(perms.group_any_set?(:read_write)).to be false
+    end
+
+    it 'raises for unknown group' do
+      perms = grouped_class.new
+      expect { perms.group_any_set?(:nonexistent) }.to raise_error(Philiprehberger::BitField::Error, /unknown group/)
+    end
+  end
+
+  describe '#group_none_set?' do
+    it 'returns true when no flags in the group are set' do
+      perms = grouped_class.new
+      expect(perms.group_none_set?(:read_write)).to be true
+    end
+
+    it 'returns true when only flags outside the group are set' do
+      perms = grouped_class.new(:execute)
+      expect(perms.group_none_set?(:read_write)).to be true
+    end
+
+    it 'returns false when some flags in the group are set' do
+      perms = grouped_class.new(:read)
+      expect(perms.group_none_set?(:read_write)).to be false
+    end
+
+    it 'returns false when all flags in the group are set' do
+      perms = grouped_class.new(:read, :write)
+      expect(perms.group_none_set?(:read_write)).to be false
+    end
+
+    it 'raises for unknown group' do
+      perms = grouped_class.new
+      expect { perms.group_none_set?(:nonexistent) }.to raise_error(Philiprehberger::BitField::Error, /unknown group/)
+    end
+  end
+
+  # --- Flag Diff ---
+
+  describe '#added_flags' do
+    it 'returns flags set in self but not in other' do
+      a = permissions_class.new(:read, :write)
+      b = permissions_class.new(:write)
+      expect(a.added_flags(b)).to eq([:read])
+    end
+
+    it 'returns empty array when self has no extra flags' do
+      a = permissions_class.new(:write)
+      b = permissions_class.new(:read, :write)
+      expect(a.added_flags(b)).to eq([])
+    end
+
+    it 'returns all flags when other has none' do
+      a = permissions_class.new(:read, :write, :execute)
+      b = permissions_class.new
+      expect(a.added_flags(b)).to eq(%i[read write execute])
+    end
+
+    it 'raises for different bit field types' do
+      other_class = Class.new(described_class) { flag :x, 0 }
+      a = permissions_class.new(:read)
+      b = other_class.new(:x)
+      expect { a.added_flags(b) }.to raise_error(Philiprehberger::BitField::Error)
+    end
+  end
+
+  describe '#removed_flags' do
+    it 'returns flags set in other but not in self' do
+      a = permissions_class.new(:write)
+      b = permissions_class.new(:read, :write)
+      expect(a.removed_flags(b)).to eq([:read])
+    end
+
+    it 'returns empty array when other has no extra flags' do
+      a = permissions_class.new(:read, :write)
+      b = permissions_class.new(:write)
+      expect(a.removed_flags(b)).to eq([])
+    end
+
+    it 'returns all flags when self has none' do
+      a = permissions_class.new
+      b = permissions_class.new(:read, :write, :execute)
+      expect(a.removed_flags(b)).to eq(%i[read write execute])
+    end
+
+    it 'raises for different bit field types' do
+      other_class = Class.new(described_class) { flag :x, 0 }
+      a = permissions_class.new(:read)
+      b = other_class.new(:x)
+      expect { a.removed_flags(b) }.to raise_error(Philiprehberger::BitField::Error)
+    end
+  end
+
+  # --- Strict Constructor ---
+
+  describe '.strict' do
+    it 'creates an instance with valid flags' do
+      perms = permissions_class.strict(:read, :write)
+      expect(perms.read?).to be true
+      expect(perms.write?).to be true
+    end
+
+    it 'raises for unknown flag names' do
+      expect { permissions_class.strict(:read, :admin) }.to raise_error(Philiprehberger::BitField::Error, /unknown flag/)
+    end
+
+    it 'creates an empty instance with no arguments' do
+      perms = permissions_class.strict
+      expect(perms.to_i).to eq(0)
+    end
+  end
+
+  # --- Flag Clear ---
+
+  describe '#flag_clear?' do
+    it 'returns true when the flag is not set' do
+      perms = permissions_class.new
+      expect(perms.flag_clear?(:read)).to be true
+    end
+
+    it 'returns false when the flag is set' do
+      perms = permissions_class.new(:read)
+      expect(perms.flag_clear?(:read)).to be false
+    end
+
+    it 'is the negation of flag_set?' do
+      perms = permissions_class.new(:read, :execute)
+      permissions_class.flags.each do |f|
+        expect(perms.flag_clear?(f)).to eq(!perms.flag_set?(f))
+      end
+    end
+
+    it 'raises for unknown flags' do
+      perms = permissions_class.new
+      expect { perms.flag_clear?(:admin) }.to raise_error(Philiprehberger::BitField::Error)
+    end
+  end
 end

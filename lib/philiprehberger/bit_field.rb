@@ -69,6 +69,19 @@ module Philiprehberger
           groups_map.dup
         end
 
+        # Create an instance that raises on unknown flag names
+        #
+        # @param initial_flags [Array<Symbol>] flags to set initially
+        # @return [Base]
+        # @raise [Error] if any flag name is not defined
+        def strict(*initial_flags)
+          initial_flags.each do |f|
+            raise Error, "unknown flag: #{f}" unless flags_map.key?(f)
+          end
+
+          new(*initial_flags)
+        end
+
         # Create an instance from an integer value
         #
         # @param value [Integer] the integer representation
@@ -135,6 +148,14 @@ module Philiprehberger
       def flag_set?(flag)
         pos = position_for(flag)
         @value.anybits?(1 << pos)
+      end
+
+      # Check if a flag is clear (not set)
+      #
+      # @param flag [Symbol] the flag name
+      # @return [Boolean]
+      def flag_clear?(flag)
+        !flag_set?(flag)
       end
 
       # Set a flag
@@ -227,6 +248,22 @@ module Philiprehberger
         group_flags(group_name).all? { |f| flag_set?(f) }
       end
 
+      # Check if any flag in a group is set
+      #
+      # @param group_name [Symbol] the group name
+      # @return [Boolean]
+      def group_any_set?(group_name)
+        group_flags(group_name).any? { |f| flag_set?(f) }
+      end
+
+      # Check if no flags in a group are set
+      #
+      # @param group_name [Symbol] the group name
+      # @return [Boolean]
+      def group_none_set?(group_name)
+        group_flags(group_name).none? { |f| flag_set?(f) }
+      end
+
       # Return the integer representation
       #
       # @return [Integer]
@@ -315,6 +352,26 @@ module Philiprehberger
       # @return [Integer]
       def hash
         [self.class, @value].hash
+      end
+
+      # Return flags set in self but not in other
+      #
+      # @param other [Base] another bit field of the same type
+      # @return [Array<Symbol>]
+      def added_flags(other)
+        raise Error, 'cannot compare different bit field types' unless other.is_a?(self.class)
+
+        self.class.flags.select { |f| flag_set?(f) && !other.flag_set?(f) }
+      end
+
+      # Return flags set in other but not in self
+      #
+      # @param other [Base] another bit field of the same type
+      # @return [Array<Symbol>]
+      def removed_flags(other)
+        raise Error, 'cannot compare different bit field types' unless other.is_a?(self.class)
+
+        self.class.flags.select { |f| !flag_set?(f) && other.flag_set?(f) }
       end
 
       alias eql? ==
