@@ -130,6 +130,38 @@ RSpec.describe Philiprehberger::BitField::Base do
     end
   end
 
+  describe '#to_binary_string' do
+    it 'returns a string of zeros equal to the flag count when no flags are set' do
+      perms = permissions_class.new
+      expect(perms.to_binary_string).to eq('000')
+    end
+
+    it 'returns a string of ones equal to the flag count when all flags are set' do
+      perms = permissions_class.new(:read, :write, :execute)
+      expect(perms.to_binary_string).to eq('111')
+    end
+
+    it 'defaults to a width equal to the declared flag count' do
+      perms = permissions_class.new(:read)
+      expect(perms.to_binary_string.length).to eq(permissions_class.flags.size)
+    end
+
+    it 'pads the output to a given width when larger than natural length' do
+      perms = permissions_class.new(:read, :execute)
+      expect(perms.to_binary_string(width: 8)).to eq('00000101')
+    end
+
+    it 'does not truncate when width is smaller than natural length' do
+      perms = permissions_class.new(:read, :write, :execute)
+      expect(perms.to_binary_string(width: 1)).to eq('111')
+    end
+
+    it 'represents set flags MSB-first' do
+      perms = permissions_class.new(:read, :execute)
+      expect(perms.to_binary_string).to eq('101')
+    end
+  end
+
   describe '#to_a' do
     it 'returns set flag names' do
       perms = permissions_class.new(:read, :execute)
