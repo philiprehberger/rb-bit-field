@@ -145,6 +145,18 @@ Permissions.from_json('{"flags":["read"],"value":1}')
 Permissions.from_h({ flags: [:read], value: 1 })
 ```
 
+### Binary string
+
+```ruby
+class Permissions < Philiprehberger::BitField::Base
+  flag :read,  0
+  flag :write, 1
+  flag :exec,  2
+end
+
+Permissions.from_i(0b101).to_binary_string # => "101"
+```
+
 ## API
 
 | Method | Description |
@@ -176,6 +188,7 @@ Permissions.from_h({ flags: [:read], value: 1 })
 | `#added_flags(other)` | Return flags set in self but not in other |
 | `#removed_flags(other)` | Return flags set in other but not in self |
 | `#to_i` | Return the integer representation |
+| `#to_binary_string(width: nil)` | Return the field as a `"0"`/`"1"` string, MSB-first |
 | `#to_a` | Return an array of set flag names |
 | `#to_h` | Return a hash with flags and value |
 | `#to_json` | Return a JSON string with flags and value |

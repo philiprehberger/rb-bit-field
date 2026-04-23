@@ -285,6 +285,22 @@ module Philiprehberger
         @value
       end
 
+      # Return the field as a binary string (MSB-first)
+      #
+      # By default the string is padded with leading zeros to the declared
+      # flag count. If +width+ is given and larger than the natural length,
+      # the string is padded to that width. If +width+ is smaller than the
+      # natural length, the full representation is returned without
+      # truncation to preserve correctness.
+      #
+      # @param width [Integer, nil] optional explicit width
+      # @return [String]
+      def to_binary_string(width: nil)
+        bits = self.class.flags.size
+        effective_width = width || bits
+        to_i.to_s(2).rjust(effective_width, '0')
+      end
+
       # Return an array of set flag names
       #
       # @return [Array<Symbol>]
