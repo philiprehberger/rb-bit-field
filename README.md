@@ -114,6 +114,22 @@ after.added_flags(before)    # => [:execute]
 after.removed_flags(before)  # => [:read]
 ```
 
+### Subset Check
+
+```ruby
+class Permissions < Philiprehberger::BitField::Base
+  flag :read, 0
+  flag :write, 1
+  flag :admin, 2
+end
+
+required = Permissions.new(:read)
+granted  = Permissions.new(:read, :write)
+
+required.subset_of?(granted) # => true
+granted.subset_of?(required) # => false
+```
+
 ### Strict Mode
 
 ```ruby
@@ -187,6 +203,7 @@ Permissions.from_i(0b101).to_binary_string # => "101"
 | `#group_none_set?(name)` | Check if no flags in a group are set |
 | `#added_flags(other)` | Return flags set in self but not in other |
 | `#removed_flags(other)` | Return flags set in other but not in self |
+| `#subset_of?(other)` | True if every flag set in self is also set in other |
 | `#to_i` | Return the integer representation |
 | `#to_binary_string(width: nil)` | Return the field as a `"0"`/`"1"` string, MSB-first |
 | `#to_a` | Return an array of set flag names |

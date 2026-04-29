@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-04-29
+
+### Added
+- `BitField#subset_of?(other)` predicate to test whether every flag set in self is also set in another bitfield (permission/scope-coverage check)
+
 ## [0.5.0] - 2026-04-19
 
 ### Added

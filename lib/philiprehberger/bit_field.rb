@@ -404,6 +404,17 @@ module Philiprehberger
         self.class.flags.select { |f| !flag_set?(f) && other.flag_set?(f) }
       end
 
+      # Check whether every flag set in self is also set in `other`.
+      #
+      # @param other [Base] another instance of the same BitField subclass
+      # @return [Boolean]
+      # @raise [ArgumentError] when `other` is not the same BitField subclass
+      def subset_of?(other)
+        raise ArgumentError, "expected #{self.class}, got #{other.class}" unless other.is_a?(self.class)
+
+        other.to_i.allbits?(to_i)
+      end
+
       alias eql? ==
 
       private

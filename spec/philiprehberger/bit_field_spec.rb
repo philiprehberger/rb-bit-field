@@ -765,6 +765,39 @@ RSpec.describe Philiprehberger::BitField::Base do
     end
   end
 
+  describe '#subset_of?' do
+    it 'returns true when self is empty' do
+      a = permissions_class.new
+      b = permissions_class.new(:read, :write)
+      expect(a.subset_of?(b)).to be true
+    end
+
+    it 'returns true when self is identical to other' do
+      a = permissions_class.new(:read, :write)
+      b = permissions_class.new(:read, :write)
+      expect(a.subset_of?(b)).to be true
+    end
+
+    it 'returns true when self is a strict subset of other' do
+      a = permissions_class.new(:read)
+      b = permissions_class.new(:read, :write)
+      expect(a.subset_of?(b)).to be true
+    end
+
+    it 'returns false when self is a superset of other' do
+      a = permissions_class.new(:read, :write)
+      b = permissions_class.new(:read)
+      expect(a.subset_of?(b)).to be false
+    end
+
+    it 'raises ArgumentError for different bit field types' do
+      other_class = Class.new(described_class) { flag :x, 0 }
+      a = permissions_class.new(:read)
+      b = other_class.new(:x)
+      expect { a.subset_of?(b) }.to raise_error(ArgumentError)
+    end
+  end
+
   # --- Strict Constructor ---
 
   describe '.strict' do
