@@ -172,6 +172,13 @@ module Philiprehberger
         self.class.flags.size - count_set
       end
 
+      # Return true when no flags are set
+      #
+      # @return [Boolean]
+      def empty?
+        @value.zero?
+      end
+
       # Set a flag
       #
       # @param flag [Symbol] the flag name

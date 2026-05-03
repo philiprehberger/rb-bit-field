@@ -98,10 +98,14 @@ perms.group_none_set?(:read_write)  # => true
 perms = Permissions.new(:read, :write)
 perms.count_set   # => 2
 perms.count_clear # => 1
+perms.empty?      # => false
 
 perms.set(:execute)
 perms.count_set   # => 3
 perms.count_clear # => 0
+
+empty = Permissions.new
+empty.empty?      # => true
 ```
 
 ### Flag Diff
@@ -189,6 +193,7 @@ Permissions.from_i(0b101).to_binary_string # => "101"
 | `#flag_clear?(flag)` | Check if a flag is not set |
 | `#count_set` | Return the number of flags currently set |
 | `#count_clear` | Return the number of flags currently clear |
+| `#empty?` | Return true when no flags are set |
 | `#set(flag)` | Set a flag |
 | `#clear(flag)` | Clear a flag |
 | `#toggle(flag)` | Toggle a flag |

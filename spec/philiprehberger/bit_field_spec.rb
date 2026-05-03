@@ -890,4 +890,33 @@ RSpec.describe Philiprehberger::BitField::Base do
       end
     end
   end
+
+  describe '#empty?' do
+    it 'returns true when no flags are set' do
+      perms = permissions_class.new
+      expect(perms.empty?).to be true
+    end
+
+    it 'returns false when at least one flag is set' do
+      perms = permissions_class.new(:read)
+      expect(perms.empty?).to be false
+    end
+
+    it 'returns true after clear_all' do
+      perms = permissions_class.new(:read, :write, :execute)
+      perms.clear_all
+      expect(perms.empty?).to be true
+    end
+
+    it 'returns true after setting and clearing the same flag' do
+      perms = permissions_class.new
+      perms.set(:read).clear(:read)
+      expect(perms.empty?).to be true
+    end
+
+    it 'returns false when all flags are set' do
+      perms = permissions_class.new(:read, :write, :execute)
+      expect(perms.empty?).to be false
+    end
+  end
 end
