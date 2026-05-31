@@ -422,6 +422,20 @@ module Philiprehberger
         other.to_i.allbits?(to_i)
       end
 
+      # Check whether self and `other` share no flags in common.
+      #
+      # Returns true when the bitwise AND of the two underlying values is zero.
+      # The empty bit field is disjoint with every bit field, including itself.
+      #
+      # @param other [Base] another instance of the same BitField subclass
+      # @return [Boolean]
+      # @raise [Error] when `other` is not the same BitField subclass
+      def disjoint?(other)
+        raise Error, 'cannot compare different bit field types' unless other.is_a?(self.class)
+
+        @value.nobits?(other.to_i)
+      end
+
       alias eql? ==
 
       private

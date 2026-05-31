@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-05-30
+
+### Added
+- `BitField#disjoint?(other)` predicate returning `true` when self and `other` share zero flags in common — pairs with `subset_of?` for permission-isolation checks
+- Card image to README per readme-template guide
+
 ## [0.7.0] - 2026-05-02
 
 ### Added

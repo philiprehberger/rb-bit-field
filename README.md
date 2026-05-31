@@ -4,6 +4,8 @@
 [![Gem Version](https://badge.fury.io/rb/philiprehberger-bit_field.svg)](https://rubygems.org/gems/philiprehberger-bit_field)
 [![Last updated](https://img.shields.io/github/last-commit/philiprehberger/rb-bit-field)](https://github.com/philiprehberger/rb-bit-field/commits/main)
 
+![philiprehberger-bit_field](https://raw.githubusercontent.com/philiprehberger/rb-bit-field/main/package-card.webp)
+
 Named bit flags with symbolic access, set operations, and serialization
 
 ## Requirements
@@ -134,6 +136,20 @@ required.subset_of?(granted) # => true
 granted.subset_of?(required) # => false
 ```
 
+### Disjoint Check
+
+Test whether two bit fields share zero flags in common. The empty bit field is
+disjoint with every value (including itself).
+
+```ruby
+admin   = Permissions.new(:admin)
+viewer  = Permissions.new(:read)
+
+admin.disjoint?(viewer)   # => true  (no overlap)
+viewer.disjoint?(viewer)  # => false (read overlaps with itself)
+Permissions.new.disjoint?(admin) # => true (empty vs anything)
+```
+
 ### Strict Mode
 
 ```ruby
@@ -209,6 +225,7 @@ Permissions.from_i(0b101).to_binary_string # => "101"
 | `#added_flags(other)` | Return flags set in self but not in other |
 | `#removed_flags(other)` | Return flags set in other but not in self |
 | `#subset_of?(other)` | True if every flag set in self is also set in other |
+| `#disjoint?(other)` | True when self and other share no flags in common |
 | `#to_i` | Return the integer representation |
 | `#to_binary_string(width: nil)` | Return the field as a `"0"`/`"1"` string, MSB-first |
 | `#to_a` | Return an array of set flag names |

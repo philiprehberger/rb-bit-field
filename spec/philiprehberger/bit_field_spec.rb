@@ -798,6 +798,34 @@ RSpec.describe Philiprehberger::BitField::Base do
     end
   end
 
+  describe '#disjoint?' do
+    it 'returns true when self and other share no flags' do
+      a = permissions_class.new(:read)
+      b = permissions_class.new(:write, :execute)
+      expect(a.disjoint?(b)).to be true
+    end
+
+    it 'returns false when self and other share at least one flag' do
+      a = permissions_class.new(:read, :write)
+      b = permissions_class.new(:write, :execute)
+      expect(a.disjoint?(b)).to be false
+    end
+
+    it 'returns true for the empty bit field against any value (including itself)' do
+      empty = permissions_class.new
+      other = permissions_class.new(:read, :write)
+      expect(empty.disjoint?(other)).to be true
+      expect(empty.disjoint?(empty)).to be true
+    end
+
+    it 'raises Error for different bit field types' do
+      other_class = Class.new(described_class) { flag :x, 0 }
+      a = permissions_class.new(:read)
+      b = other_class.new(:x)
+      expect { a.disjoint?(b) }.to raise_error(Philiprehberger::BitField::Error)
+    end
+  end
+
   # --- Strict Constructor ---
 
   describe '.strict' do
